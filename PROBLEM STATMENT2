@@ -1,0 +1,130 @@
+
+### Objective 1: System Health Monitoring Script
+
+Python Script:
+
+```python
+import psutil
+import logging
+from datetime import datetime
+
+# Configure logging
+logging.basicConfig(filename='system_health.log', level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Define threshold values
+CPU_THRESHOLD = 80.0
+MEMORY_THRESHOLD = 80.0
+DISK_THRESHOLD = 80.0
+
+def check_cpu_usage():
+    cpu_usage = psutil.cpu_percent(interval=1)
+    if cpu_usage > CPU_THRESHOLD:
+        logging.warning(f'High CPU usage detected: {cpu_usage}%')
+    return cpu_usage
+
+def check_memory_usage():
+    memory_info = psutil.virtual_memory()
+    memory_usage = memory_info.percent
+    if memory_usage > MEMORY_THRESHOLD:
+        logging.warning(f'High Memory usage detected: {memory_usage}%')
+    return memory_usage
+
+def check_disk_usage():
+    disk_info = psutil.disk_usage('/')
+    disk_usage = disk_info.percent
+    if disk_usage > DISK_THRESHOLD:
+        logging.warning(f'High Disk usage detected: {disk_usage}%')
+    return disk_usage
+
+def log_running_processes():
+    for process in psutil.process_iter(['pid', 'name', 'username']):
+        logging.info(f'Process {process.info["pid"]} - {process.info["name"]} - {process.info["username"]}')
+
+def main():
+    cpu = check_cpu_usage()
+    memory = check_memory_usage()
+    disk = check_disk_usage()
+    log_running_processes()
+
+    print(f"CPU Usage: {cpu}%")
+    print(f"Memory Usage: {memory}%")
+    print(f"Disk Usage: {disk}%")
+    print("System health details logged to system_health.log")
+
+if __name__ == "__main__":
+    main()
+```
+
+### Objective 3: Log File Analyzer
+
+**Python Script:**
+
+```python
+import re
+from collections import Counter
+
+# Path to the log file
+log_file_path = '/path/to/your/webserver.log'
+
+# Regular expressions to match log patterns
+log_pattern = re.compile(
+    r'(?P<ip>\d+\.\d+\.\d+\.\d+) - - \[(?P<date_time>[^\]]+)\] "(?P<request>[^"]+)" (?P<status>\d{3}) (?P<size>\d+|-)'
+)
+
+def analyze_logs(log_file_path):
+    ip_counter = Counter()
+    status_counter = Counter()
+    page_counter = Counter()
+    not_found_counter = 0
+
+    with open(log_file_path, 'r') as file:
+        for line in file:
+            match = log_pattern.match(line)
+            if match:
+                data = match.groupdict()
+                ip_counter[data['ip']] += 1
+                status_counter[data['status']] += 1
+
+                request_parts = data['request'].split()
+                if len(request_parts) > 1:
+                    page_counter[request_parts[1]] += 1
+
+                if data['status'] == '404':
+                    not_found_counter += 1
+
+    print("Log Analysis Report:")
+    print("====================")
+    print(f"Total 404 errors: {not_found_counter}")
+    print("\nTop 5 most requested pages:")
+    for page, count in page_counter.most_common(5):
+        print(f"{page}: {count} requests")
+
+    print("\nTop 5 IP addresses with the most requests:")
+    for ip, count in ip_counter.most_common(5):
+        print(f"{ip}: {count} requests")
+
+if __name__ == "__main__":
+    analyze_logs(log_file_path)
+```
+
+### Instructions
+
+1. System Health Monitoring Script:
+   - Install the required library:
+     ```sh
+     pip install psutil
+     ```
+   - Save the script as `system_health_monitor.py`.
+   - Run the script:
+     ```sh
+     python system_health_monitor.py
+     ```
+
+2. Log File Analyzer:
+   - Update the `log_file_path` variable with the path to your web server log file.
+   - Save the script as `log_file_analyzer.py`.
+   - Run the script:
+     ```sh
+     python log_file_analyzer.py
+     
